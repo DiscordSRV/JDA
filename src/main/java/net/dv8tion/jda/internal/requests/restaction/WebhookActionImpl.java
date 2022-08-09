@@ -114,6 +114,7 @@ public class WebhookActionImpl extends AuditableRestActionImpl<Webhook> implemen
     {
         DataObject json = response.getObject();
         Webhook webhook = api.getEntityBuilder().createWebhook(json);
+        if (webhook == null) return;
 
         request.onSuccess(webhook);
     }

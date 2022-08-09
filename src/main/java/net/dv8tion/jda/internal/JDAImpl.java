@@ -30,6 +30,7 @@ import net.dv8tion.jda.api.events.GatewayPingEvent;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.StatusChangeEvent;
 import net.dv8tion.jda.api.exceptions.AccountTypeException;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.RateLimitedException;
 import net.dv8tion.jda.api.hooks.IEventManager;
 import net.dv8tion.jda.api.hooks.InterfacedEventManager;
@@ -38,10 +39,7 @@ import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.managers.AudioManager;
 import net.dv8tion.jda.api.managers.Presence;
-import net.dv8tion.jda.api.requests.GatewayIntent;
-import net.dv8tion.jda.api.requests.Request;
-import net.dv8tion.jda.api.requests.Response;
-import net.dv8tion.jda.api.requests.RestAction;
+import net.dv8tion.jda.api.requests.*;
 import net.dv8tion.jda.api.requests.restaction.CommandCreateAction;
 import net.dv8tion.jda.api.requests.restaction.CommandEditAction;
 import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
@@ -54,6 +52,7 @@ import net.dv8tion.jda.api.utils.data.DataArray;
 import net.dv8tion.jda.api.utils.data.DataObject;
 import net.dv8tion.jda.internal.entities.EntityBuilder;
 import net.dv8tion.jda.internal.entities.UserImpl;
+import net.dv8tion.jda.internal.entities.WebhookImpl;
 import net.dv8tion.jda.internal.handle.EventCache;
 import net.dv8tion.jda.internal.handle.GuildSetupController;
 import net.dv8tion.jda.internal.hooks.EventManagerProxy;
@@ -936,12 +935,26 @@ public class JDAImpl implements JDA
 
         Route.CompiledRoute route = Route.Webhooks.GET_WEBHOOK.compile(webhookId);
 
-        return new RestActionImpl<>(this, route, (response, request) ->
-        {
-            DataObject object = response.getObject();
-            EntityBuilder builder = getEntityBuilder();
-            return builder.createWebhook(object);
-        });
+        return new RestActionImpl<Webhook>(this, route) {
+            @Override
+            public void handleResponse(Response response, Request<Webhook> request)
+            {
+                if (response.isOk()) {
+                    DataObject object = response.getObject();
+                    EntityBuilder builder = getEntityBuilder();
+                    WebhookImpl webhook = builder.createWebhook(object);
+                    if (webhook != null) {
+                        request.onSuccess(webhook);
+                        return;
+                    }
+
+                    request.onFailure(ErrorResponseException.create(ErrorResponse.UNKNOWN_WEBHOOK, response));
+                    return;
+                }
+
+                super.handleResponse(response, request);
+            }
+        };
     }
 
     @Nonnull

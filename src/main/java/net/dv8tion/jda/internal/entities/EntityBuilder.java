@@ -1643,11 +1643,13 @@ public class EntityBuilder
         return permOverride.setAllow(allow).setDeny(deny);
     }
 
+    @Nullable
     public WebhookImpl createWebhook(DataObject object)
     {
         return createWebhook(object, false);
     }
 
+    @Nullable
     public WebhookImpl createWebhook(DataObject object, boolean allowMissingChannel)
     {
         final long id = object.getLong("id");
@@ -1655,6 +1657,11 @@ public class EntityBuilder
         final long channelId = object.getUnsignedLong("channel_id");
         final String token = object.getString("token", null);
         final WebhookType type = WebhookType.fromKey(object.getInt("type", -1));
+
+        GuildChannel guildChannel = getJDA().getGuildChannelById(channelId);
+        if (guildChannel == null && !allowMissingChannel) {
+            return null;
+        }
 
         TextChannel channel = getJDA().getTextChannelById(channelId);
         if (channel == null && !allowMissingChannel)

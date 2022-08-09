@@ -86,7 +86,9 @@ public class TextChannelImpl extends AbstractChannelImpl<TextChannel, TextChanne
             {
                 try
                 {
-                    webhooks.add(builder.createWebhook(array.getObject(i)));
+                    WebhookImpl webhook = builder.createWebhook(array.getObject(i));
+                    if (webhook == null) continue;
+                    webhooks.add(webhook);
                 }
                 catch (UncheckedIOException | NullPointerException e)
                 {

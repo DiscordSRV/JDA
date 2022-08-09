@@ -511,7 +511,9 @@ public class GuildImpl implements Guild
             {
                 try
                 {
-                    webhooks.add(builder.createWebhook(array.getObject(i)));
+                    WebhookImpl webhook = builder.createWebhook(array.getObject(i));
+                    if (webhook == null) continue;
+                    webhooks.add(webhook);
                 }
                 catch (Exception e)
                 {
