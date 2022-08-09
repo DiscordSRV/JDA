@@ -30,12 +30,11 @@ plugins {
 }
 
 val versionObj = Version(major = "4", minor = "4", revision = "0")
+val fixNumber = 1
 
 project.group = "net.dv8tion"
 project.version = "$versionObj"
 val archivesBaseName = "JDA"
-
-val s3PublishingUrl = "s3://m2.dv8tion.net/releases"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
@@ -260,7 +259,7 @@ test.apply {
 
 publishing {
     publications {
-        create<MavenPublication>("S3Release") {
+        create<MavenPublication>("ScarszNexus") {
             from(components["java"])
 
             artifactId = archivesBaseName
@@ -272,10 +271,10 @@ publishing {
 
             repositories {
                 maven {
-                    url = uri(s3PublishingUrl)
-                    credentials(AwsCredentials::class) {
-                        accessKey = getProjectProperty("awsAccessKey")
-                        secretKey = getProjectProperty("awsSecretKey")
+                    url = uri("https://nexus.scarsz.me/content/repositories/3rd/")
+                    credentials(PasswordCredentials::class) {
+                        username = getProjectProperty("scarszNexusUsername")
+                        password = getProjectProperty("scarszNexusPassword")
                     }
                 }
             }
@@ -283,11 +282,10 @@ publishing {
     }
 }
 
-val publishS3ReleasePublicationToMavenRepository: Task by tasks
-publishS3ReleasePublicationToMavenRepository.apply {
-    onlyIf { getProjectProperty("awsAccessKey").isNotEmpty() }
-    onlyIf { getProjectProperty("awsSecretKey").isNotEmpty() }
-    onlyIf { System.getenv("BUILD_NUMBER") != null }
+val publishScarszNexusPublicationToMavenRepository: Task by tasks
+publishScarszNexusPublicationToMavenRepository.apply {
+    onlyIf { getProjectProperty("scarszNexusUsername").isNotEmpty() }
+    onlyIf { getProjectProperty("scarszNexusPassword").isNotEmpty() }
 
     dependsOn(clean)
     dependsOn(build)
@@ -303,11 +301,7 @@ fun getProjectProperty(propertyName: String): String {
 }
 
 fun getBuild(): String {
-    return System.getenv("BUILD_NUMBER")
-            ?: System.getProperty("BUILD_NUMBER")
-            ?: System.getenv("GIT_COMMIT")?.substring(0, 7)
-            ?: System.getProperty("GIT_COMMIT")?.substring(0, 7)
-            ?: "DEV"
+    return "352.fix-$fixNumber"
 }
 
 class Version(
