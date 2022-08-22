@@ -1658,15 +1658,16 @@ public class EntityBuilder
         final String token = object.getString("token", null);
         final WebhookType type = WebhookType.fromKey(object.getInt("type", -1));
 
-        GuildChannel guildChannel = getJDA().getGuildChannelById(channelId);
-        if (guildChannel == null && !allowMissingChannel) {
-            return null;
-        }
-
         TextChannel channel = getJDA().getTextChannelById(channelId);
-        if (channel == null && !allowMissingChannel)
+        if (channel == null && !allowMissingChannel) {
+            GuildChannel guildChannel = getJDA().getGuildChannelById(channelId);
+            if (guildChannel != null) {
+                return null;
+            }
+
             throw new NullPointerException(String.format("Tried to create Webhook for an un-cached TextChannel! WebhookId: %s ChannelId: %s GuildId: %s",
                     id, channelId, guildId));
+        }
 
         Object name = !object.isNull("name") ? object.get("name") : null;
         Object avatar = !object.isNull("avatar") ? object.get("avatar") : null;
