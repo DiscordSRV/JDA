@@ -1660,13 +1660,7 @@ public class EntityBuilder
 
         TextChannel channel = getJDA().getTextChannelById(channelId);
         if (channel == null && !allowMissingChannel) {
-            GuildChannel guildChannel = getJDA().getGuildChannelById(channelId);
-            if (guildChannel != null) {
-                return null;
-            }
-
-            throw new NullPointerException(String.format("Tried to create Webhook for an un-cached TextChannel! WebhookId: %s ChannelId: %s GuildId: %s",
-                    id, channelId, guildId));
+            return null;
         }
 
         Object name = !object.isNull("name") ? object.get("name") : null;
