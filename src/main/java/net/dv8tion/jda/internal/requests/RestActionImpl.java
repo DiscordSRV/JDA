@@ -60,7 +60,7 @@ public class RestActionImpl<T> implements RestAction<T>
 
     protected final JDAImpl api;
 
-    private final Route.CompiledRoute route;
+    protected final Route.CompiledRoute route;
     private final RequestBody data;
     private final BiFunction<Response, Request<T>, T> handler;
 

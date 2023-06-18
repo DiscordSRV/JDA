@@ -26,9 +26,11 @@ import net.dv8tion.jda.internal.JDAImpl;
 import net.dv8tion.jda.internal.entities.AbstractWebhookClient;
 import net.dv8tion.jda.internal.entities.ReceivedMessage;
 import net.dv8tion.jda.internal.entities.channel.concrete.WebhookChannel;
+import net.dv8tion.jda.internal.requests.restaction.AuditableRestActionImpl;
 import net.dv8tion.jda.internal.requests.restaction.WebhookMessageCreateActionImpl;
 import net.dv8tion.jda.internal.requests.restaction.WebhookMessageEditActionImpl;
 import net.dv8tion.jda.internal.utils.Checks;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.function.Function;
@@ -40,11 +42,24 @@ public class IncomingWebhookClient extends AbstractWebhookClient<Message>
         super(webhookId, webhookToken, api);
     }
 
+    private String threadId;
+    private IncomingWebhookClient(long webhookId, String webhookToken, JDA api, String threadId)
+    {
+        this(webhookId, webhookToken, api);
+        this.threadId = threadId;
+    }
+
+    public IncomingWebhookClient withThreadId(String threadId)
+    {
+        return new IncomingWebhookClient(id, token, api, threadId);
+    }
+
     @Override
     public WebhookMessageCreateActionImpl<Message> sendRequest()
     {
         Route.CompiledRoute route = Route.Webhooks.EXECUTE_WEBHOOK.compile(Long.toUnsignedString(id), token);
         route = route.withQueryParams("wait", "true");
+        route = route.withQueryParams("thread_id", threadId);
         WebhookMessageCreateActionImpl<Message> action = new WebhookMessageCreateActionImpl<>(api, route, builder());
         action.run();
         return action;
@@ -57,6 +72,7 @@ public class IncomingWebhookClient extends AbstractWebhookClient<Message>
             Checks.isSnowflake(messageId);
         Route.CompiledRoute route = Route.Webhooks.EXECUTE_WEBHOOK_EDIT.compile(Long.toUnsignedString(id), token, messageId);
         route = route.withQueryParams("wait", "true");
+        route = route.withQueryParams("thread_id", threadId);
         WebhookMessageEditActionImpl<Message> action = new WebhookMessageEditActionImpl<>(api, route, builder());
         action.run();
         return action;
@@ -69,7 +85,19 @@ public class IncomingWebhookClient extends AbstractWebhookClient<Message>
         if (!"@original".equals(messageId))
             Checks.isSnowflake(messageId);
         Route.CompiledRoute route = Route.Interactions.GET_MESSAGE.compile(Long.toUnsignedString(id), token, messageId);
+        route = route.withQueryParams("thread_id", threadId);
         return new RestActionImpl<>(api, route, (response, request) -> builder().apply(response.getObject()));
+    }
+
+    @NotNull
+    @Override
+    public RestAction<Void> deleteMessageById(@NotNull String messageId)
+    {
+        if (!"@original".equals(messageId))
+            Checks.isSnowflake(messageId);
+        Route.CompiledRoute route = Route.Webhooks.EXECUTE_WEBHOOK_DELETE.compile(Long.toUnsignedString(id), token, messageId);
+        route = route.withQueryParams("thread_id", threadId);
+        return new AuditableRestActionImpl<>(api, route);
     }
 
     private Function<DataObject, Message> builder()
