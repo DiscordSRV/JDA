@@ -28,6 +28,7 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.dv8tion.jda.internal.utils.message.MessageCreateBuilderMixin;
 import okhttp3.RequestBody;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -43,6 +44,8 @@ public class WebhookMessageCreateActionImpl<T>
     private final Function<DataObject, T> transformer;
 
     private boolean ephemeral;
+    private String username;
+    private String avatarUrl;
 
     public WebhookMessageCreateActionImpl(JDA api, Route.CompiledRoute route, Function<DataObject, T> transformer)
     {
@@ -54,6 +57,22 @@ public class WebhookMessageCreateActionImpl<T>
     public MessageCreateBuilder getBuilder()
     {
         return builder;
+    }
+
+    @NotNull
+    @Override
+    public WebhookMessageCreateAction<T> setUsername(@Nullable String name)
+    {
+        this.username = name;
+        return this;
+    }
+
+    @NotNull
+    @Override
+    public WebhookMessageCreateAction<T> setAvatarUrl(@Nullable String iconUrl)
+    {
+        this.avatarUrl = iconUrl;
+        return this;
     }
 
     @Nonnull
@@ -73,6 +92,11 @@ public class WebhookMessageCreateActionImpl<T>
             DataObject json = data.toData();
             if (ephemeral)
                 json.put("flags", json.getInt("flags", 0) | MessageFlag.EPHEMERAL.getValue());
+
+            if (username != null)
+                json.put("username", username);
+            if (avatarUrl != null)
+                json.put("avatar_url", avatarUrl);
 
             return getMultipartBody(files, json);
         }

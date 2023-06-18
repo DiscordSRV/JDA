@@ -59,7 +59,7 @@ public class IncomingWebhookClient extends AbstractWebhookClient<Message>
     {
         Route.CompiledRoute route = Route.Webhooks.EXECUTE_WEBHOOK.compile(Long.toUnsignedString(id), token);
         route = route.withQueryParams("wait", "true");
-        route = route.withQueryParams("thread_id", threadId);
+        if (threadId != null) route = route.withQueryParams("thread_id", threadId);
         WebhookMessageCreateActionImpl<Message> action = new WebhookMessageCreateActionImpl<>(api, route, builder());
         action.run();
         return action;
@@ -72,7 +72,7 @@ public class IncomingWebhookClient extends AbstractWebhookClient<Message>
             Checks.isSnowflake(messageId);
         Route.CompiledRoute route = Route.Webhooks.EXECUTE_WEBHOOK_EDIT.compile(Long.toUnsignedString(id), token, messageId);
         route = route.withQueryParams("wait", "true");
-        route = route.withQueryParams("thread_id", threadId);
+        if (threadId != null) route = route.withQueryParams("thread_id", threadId);
         WebhookMessageEditActionImpl<Message> action = new WebhookMessageEditActionImpl<>(api, route, builder());
         action.run();
         return action;
@@ -85,7 +85,7 @@ public class IncomingWebhookClient extends AbstractWebhookClient<Message>
         if (!"@original".equals(messageId))
             Checks.isSnowflake(messageId);
         Route.CompiledRoute route = Route.Interactions.GET_MESSAGE.compile(Long.toUnsignedString(id), token, messageId);
-        route = route.withQueryParams("thread_id", threadId);
+        if (threadId != null) route = route.withQueryParams("thread_id", threadId);
         return new RestActionImpl<>(api, route, (response, request) -> builder().apply(response.getObject()));
     }
 
@@ -96,7 +96,7 @@ public class IncomingWebhookClient extends AbstractWebhookClient<Message>
         if (!"@original".equals(messageId))
             Checks.isSnowflake(messageId);
         Route.CompiledRoute route = Route.Webhooks.EXECUTE_WEBHOOK_DELETE.compile(Long.toUnsignedString(id), token, messageId);
-        route = route.withQueryParams("thread_id", threadId);
+        if (threadId != null) route = route.withQueryParams("thread_id", threadId);
         return new AuditableRestActionImpl<>(api, route);
     }
 
