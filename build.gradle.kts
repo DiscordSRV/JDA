@@ -19,10 +19,6 @@
 
 import Build_gradle.Pom
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import de.marcphilipp.gradle.nexus.InitializeNexusStagingRepository
-import de.marcphilipp.gradle.nexus.NexusPublishExtension
-import io.codearte.gradle.nexus.BaseStagingTask
-import io.codearte.gradle.nexus.NexusStagingExtension
 import org.apache.tools.ant.filters.ReplaceTokens
 import java.time.Duration
 
@@ -34,13 +30,11 @@ plugins {
     `java-library`
     `maven-publish`
 
-    id("io.codearte.nexus-staging") version "0.30.0"
-    id("de.marcphilipp.nexus-publish") version "0.4.0"
     id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 val javaVersion = JavaVersion.current()
-val versionObj = Version(major = "5", minor = "0", revision = "0", classifier = "beta.10")
+val versionObj = Version(major = "5", minor = "0", revision = "0", classifier = "beta.10.webhooks")
 val isCI = System.getProperty("BUILD_NUMBER") != null // jenkins
         || System.getenv("BUILD_NUMBER") != null
         || System.getProperty("GIT_COMMIT") != null // jitpack
@@ -397,95 +391,27 @@ val SoftwareComponentContainer.java
 
 publishing {
     publications {
-        register("Release", MavenPublication::class) {
+        create<MavenPublication>("ScarszNexus") {
             from(components["java"])
 
-            artifactId = project.name
+            artifactId = archivesBaseName
             groupId = project.group as String
             version = project.version as String
 
-            artifact(sourcesJar)
             artifact(javadocJar)
+            artifact(sourcesJar)
 
-            generatePom(pom)
+            repositories {
+                maven {
+                    url = uri("https://nexus.scarsz.me/content/repositories/3rd/")
+                    credentials(PasswordCredentials::class) {
+                        username = getProjectProperty("scarszNexusUsername")
+                        password = getProjectProperty("scarszNexusPassword")
+                    }
+                }
+            }
         }
     }
-}
-
-
-// Turn off sign tasks if we don't have a key
-val canSign = getProjectProperty("signing.keyId") != null
-if (canSign) {
-    signing {
-        sign(publishing.publications.getByName("Release"))
-    }
-}
-
-// Staging and Promotion
-
-configure<NexusStagingExtension> {
-    username = getProjectProperty("ossrhUser") ?: ""
-    password = getProjectProperty("ossrhPassword") ?: ""
-    stagingProfileId = getProjectProperty("stagingProfileId") ?: ""
-}
-
-configure<NexusPublishExtension> {
-    nexusPublishing {
-        repositories.sonatype {
-            username.set(getProjectProperty("ossrhUser") ?: "")
-            password.set(getProjectProperty("ossrhPassword") ?: "")
-            stagingProfileId.set(getProjectProperty("stagingProfileId") ?: "")
-        }
-        // Sonatype is very slow :)
-        connectTimeout.set(Duration.ofMinutes(1))
-        clientTimeout.set(Duration.ofMinutes(10))
-    }
-}
-
-// This links the close/release tasks to the right repository (from the publication above)
-
-val ossrhConfigured = getProjectProperty("ossrhUser") != null
-val shouldPublish = isNewVersion && canSign && ossrhConfigured
-
-// Turn off the staging tasks if we don't want to publish
-tasks.withType<InitializeNexusStagingRepository> {
-    enabled = shouldPublish
-}
-
-tasks.withType<BaseStagingTask> {
-    enabled = shouldPublish
-    // We give each step an hour because it takes very long sometimes ...
-    numberOfRetries = 30 // 30 tries
-    delayBetweenRetriesInMillis = 2 * 60 * 1000 // 2 minutes
-}
-
-// Getting staging profile is fine though
-tasks.getByName("getStagingProfile").enabled = ossrhConfigured
-
-tasks.create("release") {
-    // Only close repository after release is published
-    val closeRepository by tasks
-    closeRepository.mustRunAfter(tasks.withType<PublishToMavenRepository>())
-    dependsOn(tasks.withType<PublishToMavenRepository>())
-
-    // Closes the sonatype repository and publishes to maven central
-    val closeAndReleaseRepository: Task by tasks
-    dependsOn(closeAndReleaseRepository)
-
-    // Builds all jars for publications
-    dependsOn(build)
-    enabled = shouldPublish
-
-    doLast { // Only runs when shouldPublish = true
-        println("Saving version $versionObj to .version")
-        val file = File(".version")
-        file.createNewFile()
-        file.writeText(versionObj.toString())
-    }
-}
-
-tasks.withType<PublishToMavenRepository> {
-    enabled = shouldPublish
 }
 
 // Gradle stop complaining please
