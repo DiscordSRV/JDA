@@ -60,6 +60,8 @@ public class UserUpdateHandler extends SocketHandler
                     oldName));
         }
 
+        self.setDisplayName(content.getString("global_name", null));
+
         if (!Objects.equals(avatarId, self.getAvatarId()))
         {
             String oldAvatarId = self.getAvatarId();

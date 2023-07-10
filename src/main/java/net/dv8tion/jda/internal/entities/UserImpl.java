@@ -29,6 +29,7 @@ import net.dv8tion.jda.internal.requests.Route;
 import net.dv8tion.jda.internal.utils.Helpers;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.EnumSet;
 import java.util.FormattableFlags;
 import java.util.Formatter;
@@ -40,6 +41,7 @@ public class UserImpl extends UserById implements User
 
     protected short discriminator;
     protected String name;
+    protected String displayName;
     protected String avatarId;
     protected Profile profile;
     protected long privateChannel = 0L;
@@ -59,6 +61,13 @@ public class UserImpl extends UserById implements User
     public String getName()
     {
         return name;
+    }
+
+    @Nullable
+    @Override
+    public String getDisplayName()
+    {
+        return displayName;
     }
 
     @Nonnull
@@ -107,6 +116,11 @@ public class UserImpl extends UserById implements User
     @Override
     public String getAsTag()
     {
+        String discriminator = getDiscriminator();
+        if (discriminator.replace("0", "").isEmpty()) {
+            return getName();
+        }
+
         return getName() + '#' + getDiscriminator();
     }
 
@@ -190,6 +204,12 @@ public class UserImpl extends UserById implements User
     public UserImpl setName(String name)
     {
         this.name = name;
+        return this;
+    }
+
+    public UserImpl setDisplayName(String displayName)
+    {
+        this.displayName = displayName;
         return this;
     }
 

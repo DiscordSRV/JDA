@@ -173,7 +173,7 @@ public class MemberImpl implements Member
     @Override
     public String getEffectiveName()
     {
-        return nickname != null ? nickname : getUser().getName();
+        return nickname != null ? nickname : getUser().getEffectiveName();
     }
 
     @Nonnull

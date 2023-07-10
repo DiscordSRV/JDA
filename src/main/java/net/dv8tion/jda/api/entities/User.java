@@ -144,6 +144,27 @@ public interface User extends IMentionable
     String getName();
 
     /**
+     * @return the user's display name
+     * @see #getEffectiveName()
+     */
+    @Nullable
+    String getDisplayName();
+
+    /**
+     * @return the user's display name if set, otherwise their username
+     * @see #getName()
+     * @see #getDisplayName()
+     */
+    @Nonnull
+    default String getEffectiveName() {
+        String displayName = getDisplayName();
+        if (displayName != null) {
+            return displayName;
+        }
+        return getName();
+    }
+
+    /**
      * <br>The discriminator of the {@link net.dv8tion.jda.api.entities.User User}. Used to differentiate between users with the same usernames.
      * <br>This only contains the 4 digits after the username and the #.
      *
@@ -245,10 +266,12 @@ public interface User extends IMentionable
      * The "tag" for this user
      * <p>This is the equivalent of calling {@link java.lang.String#format(String, Object...) String.format}("%#s", user)
      *
+     * <b>For new usernames without a discriminator this will only contain their username</b>
+     *
      * @throws UnsupportedOperationException
      *         If this User was created with {@link #fromId(long)}
      *
-     * @return Never-null String containing the tag for this user, for example DV8FromTheWorld#6297
+     * @return Never-null String containing the tag for this user, for example DV8FromTheWorld#6297 or vankka
      */
     @Nonnull
     String getAsTag();

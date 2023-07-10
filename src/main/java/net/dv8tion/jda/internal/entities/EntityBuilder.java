@@ -127,6 +127,7 @@ public class EntityBuilder
         selfUser.setVerified(self.getBoolean("verified"))
                 .setMfaEnabled(self.getBoolean("mfa_enabled"))
                 .setName(self.getString("username"))
+                .setDisplayName(self.getString("global_name", null))
                 .setDiscriminator(self.getString("discriminator"))
                 .setAvatarId(self.getString("avatar", null))
                 .setBot(self.getBoolean("bot"))
@@ -354,6 +355,7 @@ public class EntityBuilder
         {
             // Initial creation
             userObj.setName(user.getString("username"))
+                   .setDisplayName(user.getString("global_name", null))
                    .setDiscriminator(user.get("discriminator").toString())
                    .setAvatarId(user.getString("avatar", null))
                    .setBot(user.getBoolean("bot"))
@@ -391,6 +393,8 @@ public class EntityBuilder
                     jda, responseNumber,
                     userObj, oldName));
         }
+
+        userObj.setDisplayName(user.getString("global_name", null));
 
         if (!oldDiscriminator.equals(newDiscriminator))
         {
