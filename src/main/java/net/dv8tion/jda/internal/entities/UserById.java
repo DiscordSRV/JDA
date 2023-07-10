@@ -86,6 +86,14 @@ public class UserById implements User
         return null;
     }
 
+    @org.jetbrains.annotations.Nullable
+    @Override
+    public String getDisplayName()
+    {
+        unsupported();
+        return null;
+    }
+
     @Nonnull
     @Override
     public String getDiscriminator()
