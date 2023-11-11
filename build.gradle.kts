@@ -30,7 +30,7 @@ plugins {
 }
 
 val versionObj = Version(major = "4", minor = "4", revision = "0")
-val fixNumber = 4
+val fixNumber = 5
 
 project.group = "net.dv8tion"
 project.version = "$versionObj"

@@ -39,7 +39,7 @@ public class UserImpl extends UserById implements User
 {
     protected final JDAImpl api;
 
-    protected short discriminator;
+    protected String discriminator;
     protected String name;
     protected String displayName;
     protected String avatarId;
@@ -74,7 +74,7 @@ public class UserImpl extends UserById implements User
     @Override
     public String getDiscriminator()
     {
-        return Helpers.format("%04d", discriminator);
+        return discriminator;
     }
 
     @Override
@@ -109,7 +109,11 @@ public class UserImpl extends UserById implements User
     @Override
     public String getDefaultAvatarId()
     {
-        return String.valueOf(discriminator % 5);
+        try {
+            return String.valueOf(Long.parseLong(discriminator) % 5);
+        } catch (Throwable ignored) {
+            return "0";
+        }
     }
 
     @Nonnull
@@ -215,7 +219,7 @@ public class UserImpl extends UserById implements User
 
     public UserImpl setDiscriminator(String discriminator)
     {
-        this.discriminator = Short.parseShort(discriminator);
+        this.discriminator = discriminator;
         return this;
     }
 
