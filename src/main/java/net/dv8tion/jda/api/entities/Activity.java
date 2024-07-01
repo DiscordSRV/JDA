@@ -15,7 +15,6 @@
  */
 package net.dv8tion.jda.api.entities;
 
-import net.dv8tion.jda.annotations.Incubating;
 import net.dv8tion.jda.internal.entities.EntityBuilder;
 import net.dv8tion.jda.internal.utils.Checks;
 import net.dv8tion.jda.internal.utils.EncodingUtil;
@@ -192,11 +191,8 @@ public interface Activity
      *         if the specified name is null, empty, blank or longer than 128 characters
      *
      * @return A valid Activity instance with the provided name with {@link net.dv8tion.jda.api.entities.Activity.ActivityType#WATCHING}
-     *
-     * @incubating This feature is not yet confirmed for the official bot API
      */
     @Nonnull
-    @Incubating
     static Activity watching(@Nonnull String name)
     {
         Checks.notBlank(name, "Name");
@@ -230,6 +226,27 @@ public interface Activity
 
     /**
      * Creates a new Activity instance with the specified name.
+     * <br>This will display without a prefix in the official client
+     *
+     * @param  name
+     *         The not-null name of the newly created status
+     *
+     * @throws IllegalArgumentException
+     *         If the specified name is null, empty, blank or longer than 128 characters
+     *
+     * @return A valid Activity instance with the provided name with {@link net.dv8tion.jda.api.entities.Activity.ActivityType#CUSTOM_STATUS}
+     */
+    @Nonnull
+    static Activity customStatus(@Nonnull String name)
+    {
+        Checks.notBlank(name, "Name");
+        name = name.trim();
+        Checks.notLonger(name, 128, "Name");
+        return EntityBuilder.createActivity(name, null, ActivityType.CUSTOM_STATUS);
+    }
+
+    /**
+     * Creates a new Activity instance with the specified name.
      *
      * @param  type
      *         The {@link net.dv8tion.jda.api.entities.Activity.ActivityType ActivityType} to use
@@ -258,7 +275,7 @@ public interface Activity
      * @param  type
      *         The {@link net.dv8tion.jda.api.entities.Activity.ActivityType ActivityType} to use
      * @param  name
-     *         The not-null name of the newly created game
+     *         The not-null name of the newly created game or custom status text
      * @param  url
      *         The streaming url to use, required to display as "streaming".
      *
@@ -288,6 +305,8 @@ public interface Activity
                 return watching(name);
             case COMPETING:
                 return competing(name);
+            case CUSTOM_STATUS:
+                return customStatus(name);
             default:
                 throw new IllegalArgumentException("ActivityType " + type + " is not supported!");
         }
@@ -328,18 +347,12 @@ public interface Activity
         /**
          * Used to indicate that the {@link Activity Activity} should display
          * as {@code Watching...} in the official client.
-         *
-         * @incubating This feature is not yet confirmed for the official bot API
          */
-        @Incubating
         WATCHING(3),
         /**
          * Used to indicate that the {@link Activity Activity} should display as a custom status
          * in the official client.
-         *
-         * @incubating This Activity type is <b>read-only</b> for bots
          */
-        @Incubating
         CUSTOM_STATUS(4),
 
         /**
