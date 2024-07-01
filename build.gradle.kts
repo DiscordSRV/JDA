@@ -301,7 +301,7 @@ fun getProjectProperty(propertyName: String): String {
 }
 
 fun getBuild(): String {
-    return "352.fix-$fixNumber"
+    return "DiscordSRV.fix-$fixNumber"
 }
 
 class Version(
