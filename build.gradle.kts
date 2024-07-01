@@ -29,8 +29,8 @@ plugins {
     id("com.github.johnrengelman.shadow") version "5.1.0"
 }
 
-val versionObj = Version(major = "4", minor = "4", revision = "0")
-val fixNumber = 5
+val versionObj = Version(major = "4", minor = "4", revision = "1")
+val fixNumber = 6
 
 project.group = "net.dv8tion"
 project.version = "$versionObj"
