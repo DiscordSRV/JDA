@@ -50,10 +50,12 @@ public class MessageReference
         this.guildId = guildId;
         this.referencedMessage = referencedMessage;
 
-        if (guildId == 0L)
+        if (guildId == 0L) {
             this.channel = api.getPrivateChannelById(channelId);
-        else
-            this.channel = (MessageChannel) api.getGuildChannelById(channelId);
+        } else {
+            GuildChannel guildChannel = api.getGuildChannelById(channelId);
+            this.channel = guildChannel instanceof MessageChannel ? (MessageChannel) guildChannel : null;
+        }
 
         this.guild = api.getGuildById(guildId); // is null if guildId = 0 anyway
 
